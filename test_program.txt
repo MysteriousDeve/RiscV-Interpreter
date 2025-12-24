@@ -1,0 +1,10 @@
+# Test program to test RISC-V interpreter
+# ./riscv_interpreter < test_program.txt
+
+## start[1] = 0
+## start[2] = 0
+## start[3] = 0
+## start[4] = 0
+
+# lui x8, 2456
+addi x8, x8, 456
