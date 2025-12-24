@@ -56,13 +56,15 @@ static int get_op_type(char *op)
 /*************** END HELPER FUNCTIONS PROVIDED FOR CONVENIENCE ****************/
 
 // Debugging
-#define DEBUG_MSG(str) //printf(str); //printf("\n"); fflush(stdout)
-#define DEBUG_MSG(str) 
+#define DEBUG_MSG(str) //printf(str); printf("\n"); fflush(stdout)
 
 // Define named var for each struct
 typedef struct insn_data_struct
 {
-    int rd, rs1;
+    int rd;
+    union {
+        int rs1, upperimm;
+    };
     union {
         int rs2, imm;
     };
@@ -92,13 +94,15 @@ void init(registers_t *starting_registers)
 
     //printf("string alloc: %p, %p, %p\n", (void *)rd_text, (void *)rs1_text, (void *)rs2_text);
 
+    /*
     const char *unit_test_1 = "s1, -462";
     char *unit_test_ptr = unit_test_1;
     parse(unit_test_ptr);
     DEBUG_MSG("Unit test: ");
-    //printf("rd: %i", insn_data->rd);
-    //printf("rs1: %i", insn_data->rs1);
-    //printf("rs2: %i", insn_data->rs2);
+    printf("rd: %i", insn_data->rd);
+    printf("rs1: %i", insn_data->rs1);
+    printf("rs2: %i", insn_data->rs2);
+    */
 
     //exit(0);
 }
@@ -222,7 +226,7 @@ int regex_extract(char **text_ptr, const char **regex_ptr, char* str_alloc, size
         //printf("Regex ptr: \'%c\'\n", *regex);
         //printf("Text ptr: \'%c\'\n", *text);
         //printf("Mode: %i\n", parser_mode);
-        DEBUG_MSG(" Main loop 2:");
+        //DEBUG_MSG(" Main loop 2:");
         
         switch (parser_mode)
         {
@@ -301,6 +305,7 @@ void preprocess_replace_tab(char *instruction)
     while (*instruction != '\0')
     {
         if (*instruction == '\t') *instruction = ' ';
+        *instruction++;
     }
 }
 
@@ -315,13 +320,13 @@ void parse(char *instruction)
     regex_extract(&instruction_ptr, &regex_ptr, rd_text, RD_TEXT_SIZE);
     insn_data->rd = get_register_loc(rd_text); // The first argument should always be a register
 
-    //printf("Argument is: %s, %i\n", rd_text, insn_data->rd);
+    printf("Argument is: %s, %i\n", rd_text, insn_data->rd);
 
     regex_extract(&instruction_ptr, &regex_ptr, rs1_text, RS1_TEXT_SIZE);
     int rs1_try_parse = get_register_loc(rs1_text);
     if (rs1_try_parse == -1)
     {
-        rs1_try_parse = atoi(rs1_text);//(int)strtol(rs1_text, NULL, 0);
+        rs1_try_parse = (int)strtol(rs1_text, NULL, 0);
     }
     insn_data->rs1 = rs1_try_parse;
 
@@ -330,11 +335,41 @@ void parse(char *instruction)
         int rs2_try_parse = get_register_loc(rs2_text);
         if (rs2_try_parse == -1)
         {
-            rs2_try_parse = atoi(rs2_text);//(int)strtol(rs2_text, NULL, 0);
+            rs2_try_parse = (int)strtol(rs2_text, NULL, 0);
         }
         insn_data->rs2 = rs2_try_parse;
     }
     else insn_data->rs2 = 0;
+}
+
+// regex: \s*()\s*,\s*()\s*,\s*()
+void parse_saveload(char *instruction)
+{
+    preprocess_replace_tab(instruction);
+
+    const char regex[] = " *() *, *()\\(()\\)";
+    const char *regex_ptr = regex;
+    char *instruction_ptr = instruction;
+    regex_extract(&instruction_ptr, &regex_ptr, rd_text, RD_TEXT_SIZE);
+    insn_data->rd = get_register_loc(rd_text); // The first argument should always be a register
+
+    printf("Argument is: %s, %i\n", rd_text, insn_data->rd);
+
+    regex_extract(&instruction_ptr, &regex_ptr, rs1_text, RS1_TEXT_SIZE);
+    int rs1_try_parse = get_register_loc(rs1_text);
+    if (rs1_try_parse == -1)
+    {
+        rs1_try_parse = (int)strtol(rs1_text, NULL, 0);
+    }
+    insn_data->imm = rs1_try_parse;
+
+    regex_extract(&instruction_ptr, &regex_ptr, rs2_text, RS2_TEXT_SIZE);
+    int rs2_try_parse = get_register_loc(rs2_text);
+    if (rs2_try_parse == -1)
+    {
+        rs2_try_parse = (int)strtol(rs2_text, NULL, 0);
+    }
+    insn_data->rs1 = rs2_try_parse;
 }
 
 int sra_portable(int a, int sh)
@@ -367,7 +402,8 @@ void step(char *instruction)
     registers->r[0] = 0;
 
     // Parse the instruction
-    parse(instruction);
+    if (op_type == MEM_TYPE) parse_saveload(instruction);
+    else parse(instruction);
 
     if (op_type == R_TYPE)
     {
@@ -431,7 +467,7 @@ void step(char *instruction)
     }
     else if (op_type == U_TYPE)
     { 
-        int upperimm = insn_data->imm;
+        int upperimm = insn_data->upperimm;
         registers->r[insn_data->rd] = upperimm << 12;
     }
 }

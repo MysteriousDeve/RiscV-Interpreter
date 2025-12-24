@@ -1,0 +1,30 @@
+## start[1] = 10      
+## start[2] = 20       
+## start[3] = 0xFF  (255)    
+
+# R-Type 
+add x4, x1, x2         
+sub x5, x2, x1         
+and x6, x1, x3         
+or x7, x1, x3          
+xor x8, x1, x2         
+nor x9, x1, x2         
+slt x10, x1, x2        
+sll x11, x1, x2        
+sra x12, x2, x1        
+
+# I-Type 
+addi x13, x1, 15       
+andi x14, x2, 7        
+ori x15, x1, 0xA       
+xori x16, x2, 0x1      
+slti x17, x1, 25       
+
+# U-Type
+lui x18, 0x1F         
+
+# Memory-Type 
+sw x4, 0(x1)            
+lw x19, 0(x1)           
+sb x5, 4(x2)            
+lb x20, 4(x2)           

@@ -23,6 +23,10 @@ hashtable_t *ht_init(int num_buckets) {
     hashtable_t *ht = malloc(sizeof(hashtable_t));
     linkedlist_t **buckets = malloc(sizeof(linkedlist_t*) * num_buckets);
     ht->buckets = buckets;
+    for (int i = 0; i < num_buckets; i++)
+    {
+        ht->buckets[i] = NULL;
+    }
     ht->bucket_count = num_buckets;
     return ht;
 }

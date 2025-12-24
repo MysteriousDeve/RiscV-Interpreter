@@ -38,6 +38,7 @@ linkedlist_t *ll_init()
 
     // TODO: set metadata for your new list and return the new list
     list->node_count = 0;
+    list->first = NULL;
     return list;
 }
 
@@ -54,6 +55,7 @@ void ll_add(linkedlist_t *list, int key, int value)
         list->first = malloc(sizeof(linkedlist_node_t));
         list->first->key = key;
         list->first->value = value;
+        list->first->next = NULL;
         list->node_count = 1;
         return;
     }
