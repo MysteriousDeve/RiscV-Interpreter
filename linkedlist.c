@@ -77,6 +77,7 @@ int ll_get(linkedlist_t *list, int key)
     // TODO: go through each node in the linked list and return the value of
     // the node with a matching key.
     // If it does not exist, return 0.
+    if (list == NULL) return 0;
 
     linkedlist_node_t *current = list->first;
 
@@ -95,5 +96,6 @@ int ll_get(linkedlist_t *list, int key)
 int ll_size(linkedlist_t *list)
 {
     // TODO: return the number of nodes in this linked list
+    if (list == NULL) return 0;
     return list->size;
 }
