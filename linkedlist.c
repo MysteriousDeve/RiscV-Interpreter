@@ -5,16 +5,16 @@
 struct linkedlist
 {
     struct linkedlist_node *first;
-    int node_count;
     // TODO: define linked list metadata
+    int size;
 };
 
 struct linkedlist_node
 {
     // TODO: define the linked list node
-    struct linkedlist_node *next;
     int key;
     int value;
+    struct linkedlist_node *next;
 };
 typedef struct linkedlist_node linkedlist_node_t;
 
@@ -24,7 +24,7 @@ linkedlist_t *ll_init()
 
     // We have done this TODO for you as an example of how to use malloc().
     // You might want to read more about malloc() from Linux Manual page.
-    // Usually free() should be used together with malloc(). For example, 
+    // Usually free() should be used together with malloc(). For example,
     // the linkedlist you are currently implementing usually have free() in the
     // ll_delete() function. Since we are not asking you to implement
     // the ll_delete() function, you will not be using free() in this case.
@@ -37,8 +37,9 @@ linkedlist_t *ll_init()
     linkedlist_t *list = malloc(sizeof(linkedlist_t));
 
     // TODO: set metadata for your new list and return the new list
-    list->node_count = 0;
     list->first = NULL;
+    list->size = 0;
+
     return list;
 }
 
@@ -47,36 +48,28 @@ void ll_add(linkedlist_t *list, int key, int value)
     // TODO: create a new node and add to the front of the linked list if a
     // node with the key does not already exist.
     // Otherwise, replace the existing value with the new value.
-    if (list == NULL) return;
 
     linkedlist_node_t *current = list->first;
-    if (current == NULL)
-    {
-        list->first = malloc(sizeof(linkedlist_node_t));
-        list->first->key = key;
-        list->first->value = value;
-        list->first->next = NULL;
-        list->node_count = 1;
-        return;
-    }
-    else do
+
+    // Check if key already exists
+    while (current != NULL)
     {
         if (current->key == key)
         {
             current->value = value;
             return;
         }
-        if (current->next == NULL)
-        {
-            break;
-        }
-        else current = current->next;
-    } while (1);
+        current = current->next;
+    }
 
-    current->next = malloc(sizeof(linkedlist_node_t));
-    current->next->key = key;
-    current->next->value = value;
-    list->node_count += 1;
+    // Create new node and add to front
+    linkedlist_node_t *new_node = malloc(sizeof(linkedlist_node_t));
+    new_node->key = key;
+    new_node->value = value;
+    new_node->next = list->first;
+
+    list->first = new_node;
+    list->size++;
 }
 
 int ll_get(linkedlist_t *list, int key)
@@ -84,9 +77,9 @@ int ll_get(linkedlist_t *list, int key)
     // TODO: go through each node in the linked list and return the value of
     // the node with a matching key.
     // If it does not exist, return 0.
-    if (list == NULL) return 0;
 
     linkedlist_node_t *current = list->first;
+
     while (current != NULL)
     {
         if (current->key == key)
@@ -95,12 +88,12 @@ int ll_get(linkedlist_t *list, int key)
         }
         current = current->next;
     }
+
     return 0;
 }
 
 int ll_size(linkedlist_t *list)
 {
     // TODO: return the number of nodes in this linked list
-    if (list == NULL) return 0;
-    return list->node_count;
+    return list->size;
 }
