@@ -7,9 +7,6 @@
 #include "hashtable.h"
 #include "riscv.h"
 
-// Forward declaration for strsep (implemented in riscv_interpreter.c)
-char *strsep(char **stringp, const char *delim);
-
 /************** BEGIN HELPER FUNCTIONS PROVIDED FOR CONVENIENCE ***************/
 const int R_TYPE = 0;
 const int I_TYPE = 1;
@@ -344,26 +341,6 @@ void parse(char *instruction)
     else insn_data->rs2 = 0;
 }
 
-// Parse U-type instruction (lui rd, imm) - 2 operands
-void parse_utype(char *instruction)
-{
-    preprocess_replace_tab(instruction);
-
-    const char regex[] = " *() *, *()";
-    const char *regex_ptr = regex;
-    char *instruction_ptr = instruction;
-    regex_extract(&instruction_ptr, &regex_ptr, rd_text, RD_TEXT_SIZE);
-    insn_data->rd = get_register_loc(rd_text);
-
-    regex_extract(&instruction_ptr, &regex_ptr, rs1_text, RS1_TEXT_SIZE);
-    int imm_try_parse = get_register_loc(rs1_text);
-    if (imm_try_parse == -1)
-    {
-        imm_try_parse = (int)strtol(rs1_text, NULL, 0);
-    }
-    insn_data->upperimm = imm_try_parse;
-}
-
 // regex: \s*()\s*,\s*()\s*,\s*()
 void parse_saveload(char *instruction)
 {
@@ -429,7 +406,6 @@ void step(char *instruction)
 
     // Parse the instruction
     if (op_type == MEM_TYPE) parse_saveload(instruction);
-    else if (op_type == U_TYPE) parse_utype(instruction);
     else parse(instruction);
 
     if (op_type == R_TYPE)

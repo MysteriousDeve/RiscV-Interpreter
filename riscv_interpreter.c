@@ -4,23 +4,6 @@
 #include <string.h>
 #include "riscv.h"
 
-// strsep implementation for MinGW (not available by default)
-char *strsep(char **stringp, const char *delim) {
-    if (*stringp == NULL) return NULL;
-    char *start = *stringp;
-    char *end = start;
-    while (*end != '\0' && strchr(delim, *end) == NULL) {
-        end++;
-    }
-    if (*end != '\0') {
-        *end = '\0';
-        *stringp = end + 1;
-    } else {
-        *stringp = NULL;
-    }
-    return start;
-}
-
 const char *COMMENT_START = "## start";
 const int BUFFER_SIZE = 256;
 int DEBUG = 0;
