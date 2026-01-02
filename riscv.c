@@ -471,4 +471,7 @@ void step(char *instruction)
         int upperimm = insn_data->upperimm;
         registers->r[insn_data->rd] = upperimm << 12;
     }
+
+    // Reset register 0 again for proper display in console
+    registers->r[0] = 0;
 }
