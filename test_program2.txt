@@ -1,0 +1,103 @@
+# ZERO REGISTER MUST IGNORE WRITES
+################################
+    addi x0, x0, 2047
+    lui  x0, 0xABCDE
+    add  x0, x1, x2
+
+################################
+# LUI SIGN BOUNDARIES
+################################
+    lui x1, 0x80000        # x1 = 0x80000000 (INT_MIN)
+    lui x2, 0x7FFFF
+    addi x2, x2, 0xFFF     # x2 = 0x7FFFFFFF (INT_MAX)
+
+################################
+# IMMEDIATE EDGE VALUES
+################################
+    addi x3, x0, -2048     # min I-imm
+    addi x4, x0, 2047      # max I-imm
+
+################################
+# ADD / SUB OVERFLOW (WRAPAROUND)
+################################
+    add x5, x2, x2         # INT_MAX + INT_MAX
+    sub x6, x1, x2         # INT_MIN - INT_MAX
+
+################################
+# LOGIC WITH ALL ONES / ZEROS
+################################
+    addi x7, x0, -1        # 0xFFFFFFFF
+    and  x8, x7, x0        # 0
+    or   x9, x7, x0        # 0xFFFFFFFF
+    xor  x10, x7, x7       # 0
+
+################################
+# SLT / SLTI SIGN TESTS
+################################
+    slt  x11, x1, x0       # INT_MIN < 0 → 1
+    slt  x12, x0, x1       # 0 < INT_MIN → 0
+    slti x13, x1, -1       # INT_MIN < -1 → 1
+    slti x14, x2, -1       # INT_MAX < -1 → 0
+
+################################
+# SHIFT EDGE CASES
+################################
+    addi x15, x0, 31
+    sll  x16, x4, x15      # shift left by 31
+    sra  x17, x7, x15      # -1 >> 31 = -1
+
+################################
+# SHIFT MASKING (63 → 31)
+################################
+    addi x18, x0, 63
+    sll  x19, x4, x18
+    sra  x20, x1, x18
+
+################################
+# MEMORY BASE (ALIGNED)
+################################
+    lui x21, 0x10000       # 0x10000000
+
+################################
+# ALIGNED WORD STORE
+################################
+    sw x7, 0(x21)          # [0x10000000] = 0xFFFFFFFF
+    sw x2, 4(x21)          # [0x10000004] = INT_MAX
+
+################################
+# BYTE OVERWRITE (SAFE)
+################################
+    sb x0, 0(x21)          # LSB → 0
+    sb x0, 3(x21)          # MSB → 0
+    sb x7, 5(x21)          # overwrite byte in second word
+
+################################
+# ALIGNED LOADS ONLY
+################################
+    lw x22, 0(x21)         # merged bytes
+    lw x23, 4(x21)         # merged bytes
+
+################################
+# BYTE SIGN-EXTENSION EDGES
+################################
+    addi x24, x0, 0x7F
+    sb   x24, 8(x21)
+    lb   x25, 8(x21)       # +127
+
+    addi x26, x0, 0x80
+    sb   x26, 9(x21)
+    lb   x27, 9(x21)       # -128
+
+################################
+# DATA DEPENDENCY CHAIN
+################################
+    add x28, x25, x27
+    sub x29, x28, x11
+    sll x30, x29, x15
+    sra x31, x30, x15
+
+################################
+# STORE → LOAD SAME ADDRESS
+################################
+    sw x31, 12(x21)
+    lw x31, 12(x21)

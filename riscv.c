@@ -374,11 +374,20 @@ void parse_saveload(char *instruction)
 
 int sra_portable(int a, int sh)
 {
-    // In C, right shifting for negative number is implementation-defined.
-    // bruh
+    // In C, right shifting for negative number is implementation-defined. bruh
+    // This function will perform shift-right athrimetic,
+    // which means that the msb will fill the vacant positions after shifting to the right,
+    // i.e. the sign will be preserved.
     unsigned int srl_temp = (unsigned int)a >> (unsigned int)sh;
     unsigned int vacant = (a < 0) * ((unsigned int)-1 << (sizeof(unsigned int) * 8 - sh));
     return srl_temp | vacant;
+}
+
+int imm12_sign_extend(int imm12)
+{
+    // sign extend 12-bit immediate
+    int bit12 = (imm12 >> 11) & 1;
+    return (imm12 & 0xFFF) | (0xFFFFF000 * bit12);
 }
 
 void step(char *instruction)
@@ -423,7 +432,8 @@ void step(char *instruction)
     else if (op_type == I_TYPE)
     {
         int output = 0;
-        int rs1 = registers->r[insn_data->rs1], imm = insn_data->imm;
+        int rs1 = registers->r[insn_data->rs1], 
+            imm = imm12_sign_extend(insn_data->imm);
         if (strcmp("addi", op) == 0) output = rs1 + imm;
         else if (strcmp("andi", op) == 0) output = rs1 & imm;
         else if (strcmp("ori", op) == 0) output = rs1 | imm;
@@ -434,7 +444,8 @@ void step(char *instruction)
     else if (op_type == MEM_TYPE)
     {
         int rd = registers->r[insn_data->rd], 
-            rs1 = registers->r[insn_data->rs1], imm = insn_data->imm;
+            rs1 = registers->r[insn_data->rs1], 
+            imm = imm12_sign_extend(insn_data->imm);
 
         int addr_aligned = (rs1 + imm) & ~3;
         int addr_offset = (rs1 + imm) & 3;
