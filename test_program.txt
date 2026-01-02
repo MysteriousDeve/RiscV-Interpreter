@@ -1,10 +1,65 @@
 # Test program to test RISC-V interpreter
 # ./riscv_interpreter < test_program.txt
 
-## start[1] = 0
-## start[2] = 0
-## start[3] = 0
-## start[4] = 0
+# U-TYPE
+    lui x1, 0x12345        # x1 = 0x12345000
+    lui x2, 0xFFFFF        # x2 = 0xFFFFF000 (negative)
 
-# lui x8, 2456
-addi x8, x8, 456
+# I-TYPE IMMEDIATE
+    addi x3, x0, 10        # x3 = 10
+    addi x4, x0, -5        # x4 = -5
+
+    andi x5, x3, 0xF       # x5 = 10 & 15 = 10
+    ori  x6, x3, 0x20      # x6 = 10 | 32 = 42
+    xori x7, x3, 0xFF      # x7 = 10 ^ 255 = 245
+
+    slti x8, x4, 0         # x8 = (-5 < 0) = 1
+    slti x9, x3, 0         # x9 = (10 < 0) = 0
+
+# R-TYPE ARITHMETIC
+    add x10, x3, x4        # 10 + (-5) = 5
+    sub x11, x3, x4        # 10 - (-5) = 15
+
+# R-TYPE LOGIC
+    and x12, x6, x7        # 42 & 245
+    or  x13, x6, x7        # 42 | 245
+    xor x14, x6, x7        # 42 ^ 245
+
+# SHIFT OPERATIONS
+    addi x15, x0, 1
+    sll x16, x15, x3       # 1 << 10 = 1024
+
+    addi x17, x0, -16      # 0xFFFFFFF0
+    sra x18, x17, x15      # -16 >> 1 = -8 (arith shift)
+
+# SET LESS THAN (SIGNED)
+    slt x19, x4, x3        # (-5 < 10) = 1
+    slt x20, x3, x4        # (10 < -5) = 0
+
+# MEMORY TEST SETUP
+    lui x21, 0x10000       # base address = 0x10000000
+
+# STORE WORD
+    sw x3, 0(x21)          # mem[0] = 10
+    sw x4, 4(x21)          # mem[4] = -5
+
+# LOAD WORD
+    lw x22, 0(x21)         # x22 = 10
+    lw x23, 4(x21)         # x23 = -5
+
+# STORE BYTE (LOW BYTE ONLY)
+    addi x24, x0, 0x7F
+    sb x24, 8(x21)         # mem[8] = 0x7F
+
+    addi x25, x0, -1
+    sb x25, 9(x21)         # mem[9] = 0xFF
+
+# LOAD BYTE (SIGNED)
+    lb x26, 8(x21)         # x26 = 127
+    lb x27, 9(x21)         # x27 = -1 (sign-extended)
+
+# CHAINED DEPENDENCY TEST
+    add x28, x22, x26      # 10 + 127 = 137
+    sub x29, x28, x27      # 137 - (-1) = 138
+    sll x30, x29, x15      # 138 << 1 = 276
+    sra x31, x30, x15      # 276 >> 1 = 138

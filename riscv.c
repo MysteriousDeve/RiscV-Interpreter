@@ -19,7 +19,7 @@ const int UNKNOWN_TYPE = 4;
  */
 static int get_op_type(char *op)
 {
-    const char *r_type_op[] = {"add", "sub", "and", "or", "xor", "slt", "sll", "sra"};
+    const char *r_type_op[] = {"add", "sub", "and", "or", "xor", "nor", "slt", "sll", "sra"};
     const char *i_type_op[] = {"addi", "andi", "ori", "xori", "slti"};
     const char *mem_type_op[] = {"lw", "lb", "sw", "sb"};
     const char *u_type_op[] = {"lui"};
@@ -414,6 +414,7 @@ void step(char *instruction)
         else if (strcmp("and", op) == 0) output = rs1 & rs2;
         else if (strcmp("or", op) == 0) output = rs1 | rs2;
         else if (strcmp("xor", op) == 0) output = rs1 ^ rs2;
+        else if (strcmp("nor", op) == 0) output = ~(rs1 | rs2);
         else if (strcmp("slt", op) == 0) output = rs1 < rs2;
         else if (strcmp("sll", op) == 0) output = rs1 << rs2;
         else if (strcmp("sra", op) == 0) output = sra_portable(rs1, rs2);
